@@ -1,4 +1,8 @@
 <?php
+//namespace Swatch\Container;
+
+//include('required.php');
+
 	class PageControllers {
 
         public $token;
@@ -13,14 +17,27 @@
         function __construct(string $tok, string $view = 'index') {
             $this->mvc = null;
             $this->token = $tok;
-            if (!is_dir("$this->token"))
-                mkdir("$this->token");
-            if (!is_dir("$this->token/view/"))
-                mkdir("$this->token/view/");
-            if (!file_exists("$this->token/config.json")) {
-                touch("$this->token/index.php");
-                touch("$this->token/config.json");
+            if (!is_dir("/$this->token"))
+                mkdir("/$this->token");
+            if (!is_dir("/$this->token")) {
+                echo "Unable to create directories needed";
             }
+            if (!is_dir("/$this->token/view/"))
+                mkdir("/$this->token/view/");
+            if (!is_dir("/$this->token/view")) {
+                echo "Unable to create directories needed";
+            }
+            if (!file_exists("/$this->token/config.json")) {
+                touch("/$this->token/index.php");
+                touch("/$this->token/config.json");
+            }
+            if (!file_exists("/$this->token/config.json")) {
+                echo "Unable to create files needed";
+            }
+            if (!file_exists("/$this->token/index.php")) {
+                echo "Unable to create files needed";
+            }
+            $this->path = "$this->token/view";
             $this->mvc['index'] = new PageModels('index');
             $this->mvc['index']->view = new PageViews($tok, $view);
         }
@@ -44,7 +61,7 @@
         *
         */
         public function save() {
-            $fp = fopen("$this->token/config.json", "w");
+            $fp = fopen("/$this->token/config.json", "w");
             fwrite($fp, json_encode($this));
             fclose($fp);
         }
@@ -69,22 +86,22 @@
         *
         */
         private function add_view(string $view_name) {
-            if (is_dir("$this->token/view/$view_name")) {
-                if (!file_exists("$this->token/view/$view_name/index.php")) {
-                    $fp = fopen("$this->token/view/$view_name/index.php", "w");
+            if (is_dir("/$this->path/$view_name/")) {
+                if (!file_exists("/$this->path/$view_name/index.php")) {
+                    $fp = fopen("/$this->path/$view_name/index.php", "w");
                     fclose($fp);
                 }
                 
             }
             else {
-                mkdir("$this->token/view/$view_name/");
-                if (!is_dir("$this->token/view/$view_name")) {
+                mkdir("/$this->path/$view_name");
+                if (!is_dir("/$this->path/$view_name")) {
                     echo "Permissions Error: Unable to create Directory";
                     return 0;
                 }
                 
-                touch("$this->path/view/$view_name/index.php");
-                touch("$this->token/config.json");
+                touch("/$this->path/$view_name/index.php");
+                touch("/$this->token/config.json");
             }
             $this->mvc[$view_name] = new PageModels($view_name);
             $this->mvc[$view_name]->view = new PageViews($this->token, $view_name);
@@ -109,11 +126,11 @@
         *
         */
         public function loadJSON() {
-            if (file_exists("$this->token/config.json") && filesize("$this->token/config.json") > 0)
-                $fp = fopen("$this->token/config.json", "r");
+            if (file_exists("/$this->token/config.json") && filesize("/$this->token/config.json") > 0)
+                $fp = fopen("/$this->token/config.json", "r");
             else
                 return 0;
-            $json_context = fread($fp, filesize("$this->token/config.json"));
+            $json_context = fread($fp, filesize("/$this->token/config.json"));
             $json = json_decode($json_context);
             $obj = new PageControllers($json->token);
             foreach ($json->mvc as $key=>$value) {
@@ -183,7 +200,7 @@
         *
         */
         function __construct(string $token, string $view_name) {
-            $this->path = "$token/view/$view_name";
+            $this->path = "/$token/view";
             $this->copy = $view_name;
             $this->partials = [];
             $this->token = $token;
@@ -197,16 +214,48 @@
         */
         public function addPartial(string $filename) {
             $bool = 0;
-            if (!is_dir("$this->path/partials/"))
-                mkdir("$this->path/partials");
-            if (!is_dir("$this->path/partials/")) {
+            if (!is_dir("$this->path/$this->copy/partials/"))
+                mkdir("$this->path/$this->copy/partials");
+            if (!is_dir("$this->path/$this->copy/partials/")) {
                 echo "No permissions";
                 return 0;
             }
-            if (!file_exists("$this->path/partials/$filename")) {
+            if (!file_exists("$this->path/$this->copy/partials/$filename")) {
                 echo "Invalid Filename";
             }
-            touch("$this->path/partials/$filename");
+            touch("$this->path/$this->copy/partials/$filename");
+            foreach ($this->partials as $v) {
+                if ($v == $filename)
+                    $bool = 1;
+            }
+            if ($bool == 1)
+                return 0;
+            else
+                $this->partials[] = "$filename";
+            return 1;
+        }
+        
+        /*
+        *
+        * public function addShared
+        * @parameters string
+        *
+        */
+        public function addShared(string $filename) {
+            $bool = 0;
+            if (!is_dir("$this->path/$this->copy/partials/"))
+                mkdir("$this->path/$this->copy/partials");
+            if (!is_dir("$this->path/$this->copy/partials/")) {
+                echo "Unable to create directories needed";
+                return 0;
+            }
+            if (!file_exists("$this->path/$this->copy/partials/$filename")) {
+                touch("$this->path/$this->copy/partials/$filename");
+                if (!file_exists("$this->path/$this->copy/partials/$filename")) {
+                    echo "Unable to create files needed";
+                    return 0;
+                }
+            }
             foreach ($this->partials as $v) {
                 if ($v == $filename)
                     $bool = 1;
@@ -244,10 +293,10 @@
         *
         */
         public function writePage(string $view_name) {
-            $fp = fopen("$this->token/view/$view_name/index.php", "w");
+            $fp = fopen("$this->path/$this->copy/index.php", "w");
             $buf = "<?php\r";
             foreach ($this->partials as $v2) {
-                $buf .= "require_once('partials/" . $v2 . "');\n";
+                $buf .= "require_once('$this->path/$this->copy/partials/" . $v2 . "');\n";
             }
             fwrite($fp, $buf);
             fclose($fp);
@@ -280,17 +329,19 @@
         public $valid = array();
         public $data = array();
         public $copy;
+        public $token;
 
         
         /*
         *
         * public function __construct
-        * @parameters string
+        * @parameters string, string
         *
         */
-        function ___construct(string $view_name) {
+        function ___construct(string $token, string $view_name) {
             $this->valid = [];
             $this->model = [];
+            $this->token = $token;
             $this->copy = $view_name;
         }
 
@@ -350,6 +401,7 @@
             $int_cnt = 0;
             $buf = "echo '<table>";
                     $buf .= "<tr>";
+                    $buf .= "<td style=\"background:opacity:0.0;border:0px;\"></td>";
                     foreach ($this->model as $kn=>$vn) {
                         if ($begin == $int_cnt || $end == 0 || $int_cnt < $end) {
                             $buf .= "<th>$kn</th>";
@@ -362,8 +414,9 @@
                     $int_dat = 0;
                     foreach ($this->data as $v1=>$va) {
                         $buf .= "<tr>";
+                        $buf .= "<td>$v1</td>";
                         foreach ($va as $k2=>$v2) {
-                            
+
                             if ($begin == $int_cnt || $end == 0 || $int_cnt < $end) {
                                 $buf .= "<td>$v2</td>";
                             }
@@ -378,8 +431,9 @@
                 $fp = null;
                 if ($view_name == 'index')
                     $fp = fopen("$token/index.php", "a");
-                else
-                    $fp = fopen("$token/view/$view_name/index.php", "a");
+                else if (!file_exists("$token/view/$view_name/index.php"))
+                    touch("$token/view/$view_name/index.php");
+                $fp = fopen("$token/view/$view_name/index.php", "a");
                 fwrite($fp, $buf);
                 fclose($fp);
                 return $buf;
@@ -414,4 +468,27 @@
             return 1;
         }
     }
+    $y = array("Address" => "BenSt", "Duration" => "fixed");
+    $z = array("Address" => "25th", "Duration" => "limited");
+
+    $x = new PageControllers("adp");
+    $x->newView("BestPHPEverNow");
+    $x->mvc['index']->addModelField("Address");
+    $x->mvc['index']->addModelValid("Address",'/.*/');
+    $x->mvc['index']->addModelValid("Duration",'/.*/');
+    $x->mvc['index']->addModelData('index', $y);
+    
+    $x->mvc['BestPHPEverNow']->view->addPartial("index.php");
+    $x->mvc['BestPHPEverNow']->addModelValid("Address",'/1.*/');
+    $x->mvc['BestPHPEverNow']->addModelValid("Duration",'/.*/');
+    $x->mvc['BestPHPEverNow']->addModelData('index', $y);
+    $x->mvc['BestPHPEverNow']->addModelData('friends', $z);
+    $x->mvc['BestPHPEverNow']->view->writePage("BestPHPEverNow");
+    $x->save();
+    $x->paginateModels('BestPHPEverNow',0,2);
+    echo json_encode($x);
+    $x = $x->loadJSON();
+
+    echo "<br><br><br>";
+    echo json_encode($x);
     
