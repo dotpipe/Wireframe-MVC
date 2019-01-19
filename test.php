@@ -1,5 +1,5 @@
 <?php
-    include("pmvc.php");
+
     $y = array("Address" => "BenSt", "Duration" => "fixed");
     $z = array("Address" => "25th", "Duration" => "limited");
 
@@ -21,5 +21,5 @@
     echo json_encode($x);
     $x = $x->loadJSON();
 
-    echo "<br><br>Continue to add layouts. Continue to develop. Continue with PMVC and Pirodock.<br><a href="adp/view/BestPHPEverNow/">Check this Link!</a>;
-    echo '<br><br><br><br>' . json_encode($x);
+    echo "<br><br><br>";
+    echo json_encode($x);
