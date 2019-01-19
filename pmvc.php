@@ -1,8 +1,4 @@
 <?php
-//namespace Swatch\Container;
-
-//include('required.php');
-
 	class PageControllers {
 
         public $token;
