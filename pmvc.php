@@ -1,4 +1,8 @@
 <?php
+namespace Swatch\Container;
+
+include('required.php');
+
 	class PageControllers {
 
         public $token;
@@ -13,25 +17,35 @@
         function __construct(string $tok, string $view = 'index') {
             $this->mvc = null;
             $this->token = $tok;
-            if (!is_dir("/$this->token"))
-                mkdir("/$this->token");
-            if (!is_dir("/$this->token")) {
+            if (!is_dir("$this->token"))
+                mkdir("$this->token");
+            if (!is_dir("$this->token")) {
                 echo "Unable to create directories needed";
             }
-            if (!is_dir("/$this->token/view/"))
-                mkdir("/$this->token/view/");
-            if (!is_dir("/$this->token/view")) {
+            if (!is_dir("$this->token/view/"))
+                mkdir("$this->token/view");
+            if (!is_dir("$this->token/view")) {
                 echo "Unable to create directories needed";
             }
-            if (!file_exists("/$this->token/config.json")) {
-                touch("/$this->token/index.php");
-                touch("/$this->token/config.json");
+            if (!is_dir("$this->token/view/shared"))
+                mkdir("$this->token/view/shared");
+            if (!is_dir("$this->token/view/shared")) {
+                echo "Unable to create directories needed";
             }
-            if (!file_exists("/$this->token/config.json")) {
+            if (!file_exists("$this->token/config.json"))
+                touch("$this->token/config.json");
+            if (!file_exists("$this->token/index.php"))
+                touch("$this->token/index.php");
+            if (!file_exists("$this->token/view/shared/index.php"))
+                touch("$this->token/view/shared/index.php");
+            if (!file_exists("$this->token/config.json")) {
                 echo "Unable to create files needed";
             }
-            if (!file_exists("/$this->token/index.php")) {
+            if (!file_exists("$this->token/index.php")) {
                 echo "Unable to create files needed";
+            }
+            if (!file_exists("$this->token/view/shared/index.php")) {
+                echo "Unable to create files needed1";
             }
             $this->path = "$this->token/view";
             $this->mvc['index'] = new PageModels('index');
@@ -57,20 +71,21 @@
         *
         */
         public function save() {
-            $fp = fopen("/$this->token/config.json", "w");
-            fwrite($fp, json_encode($this));
+            $fp = fopen("$this->token/config.json", "w");
+            fwrite($fp, serialize($this));
             fclose($fp);
+            return 1;
         }
         
         
         /*
         *
         * public function paginateModels
-        * @parameters string, int, int
+        * @parameters string, string, int, int
         *
         */
-        public function paginateModels(string $view_name, int $begin = 0, int $end = 0) {
-            $x = $this->mvc[$view_name]->paginateModels($this->token, $view_name, $begin, $end);
+        public function paginateModels(string $view_name, string $filename, int $begin = 0, int $end = 0) {
+            $x = $this->mvc[$view_name]->paginateModels($this->token, $view_name, $filename, $begin, $end);
             return $x;
            
         }
@@ -97,7 +112,7 @@
                 }
                 
                 touch("/$this->path/$view_name/index.php");
-                touch("/$this->token/config.json");
+                touch("$this->token/config.json");
             }
             $this->mvc[$view_name] = new PageModels($view_name);
             $this->mvc[$view_name]->view = new PageViews($this->token, $view_name);
@@ -122,55 +137,14 @@
         *
         */
         public function loadJSON() {
-            if (file_exists("/$this->token/config.json") && filesize("/$this->token/config.json") > 0)
-                $fp = fopen("/$this->token/config.json", "r");
+            if (file_exists("$this->token/config.json") && filesize("$this->token/config.json") > 0)
+                $fp = fopen("$this->token/config.json", "r");
             else
                 return 0;
-            $json_context = fread($fp, filesize("/$this->token/config.json"));
-            $json = json_decode($json_context);
-            $obj = new PageControllers($json->token);
-            foreach ($json->mvc as $key=>$value) {
-            //index,Best
-                foreach($json->mvc->$key as $ky=>$vl) {
-                    if ($ky == "view") {
-                        foreach($vl as $k=>$v)
-                            if ($k == "copy")
-                                $obj->newView($v);
-                    }
-                }
-                foreach($json->mvc->$key as $ky=>$vl) {
-                    if ($ky == "valid") {
-                        foreach($vl as $k=>$v)
-                            $obj->mvc[$key]->addModelValid($k,$v);
-                    }
-                }
-                foreach($json->mvc->$key as $ky=>$vl) {
-                //Second level auto 'index'
-                    if ($ky == "data") {
-                        $marray = [];
-                        foreach($vl as $k=>$v) {
-                            foreach($v as $k1=>$v1) {
-                                $marray = array_merge($marray, array($k1=>$v1));
-                            }
-                        }
-                        foreach($vl as $k=>$v) {
-                            $obj->mvc[$key]->addModelData($k, $marray);
-                        }
-                    }
-                }
-                foreach($json->mvc->$key as $ky=>$vl) {
-                    if ($ky == "view") {
-                        foreach($vl as $k=>$v) {
-                            if ($k == "partials") {
-                                foreach($v as $r)
-                                    $obj->mvc[$key]->view->addPartial($r);
-                            }
-                        }
-                    }
-                }
-            }
+            $json_context = fread($fp, filesize("$this->token/config.json"));
+            
+            $obj = unserialize($json_context);
             return $obj;
-
         }
         
         /*
@@ -182,6 +156,57 @@
         public function addPartial(string $filename) {
             return $this->view->addPartial($filename);
         }
+        
+        /*
+        *
+        * public function addShared
+        * @parameters string
+        *
+        */
+        public function addShared(string $filename) {
+            return $this->view->addShared($filename);
+        }
+        
+        /*
+        *
+        * public function addAction
+        * @parameters string
+        *
+        */
+        public function addAction(string $action_name) {
+            return $this->view->actions[] = new Actions($this->token, $action_name);
+        }
+    }
+
+    class Actions {
+
+        public $token;
+        public $path;
+        
+        /*
+        *
+        * public function __construct
+        * @parameters string, string
+        *
+        */
+        function __construct(string $tok, string $view_name) {
+            $this->token = $tok;
+            $this->copy = $view_name;
+            $this->path = "$this->token/view/$view_name";
+            $this->createAction($view_name, "default");
+        }
+        
+        /*
+        *
+        * public function createAction
+        * @parameters string, string
+        *
+        */
+        public function createAction(string $action_name, string $selector) {
+            $this->action[$action_name] = new PageViews($this->token, $this->copy);
+            $this->action[$action_name]->addPartial("index.php");
+            return 0;
+        }
     }
 
     class PageViews {
@@ -189,6 +214,8 @@
         public $path;
         public $partials = array();
         public $token;
+        public $injections = array();
+
         /*
         *
         * public function __construct
@@ -196,38 +223,47 @@
         *
         */
         function __construct(string $token, string $view_name) {
-            $this->path = "/$token/view";
+            $this->path = "$token/view";
+            if (!is_dir("$this->path/$view_name") && !mkdir("$this->path/$view_name"))
+                echo "Unable to create needed directories";
             $this->copy = $view_name;
-            $this->partials = [];
+            $this->injections = [];
             $this->token = $token;
         }
         
         /*
         *
         * public function addPartial
-        * @parameters string
+        * @parameters string, string, string
         *
         */
-        public function addPartial(string $filename) {
+        public function addPartial(string $filename, string $view_name = "FALSE", string $res_dir = "FALSE") {
+            if ($view_name == "FALSE")
+                $view_name = $this->copy;
+            if ($res_dir == "FALSE")
+                $res_dir = "partials";
             $bool = 0;
-            if (!is_dir("$this->path/$this->copy/partials/"))
-                mkdir("$this->path/$this->copy/partials");
-            if (!is_dir("$this->path/$this->copy/partials/")) {
-                echo "No permissions";
+            
+            if (!is_dir("$this->path/$view_name") && !mkdir("$this->path/$view_name")) {
+                echo "Unable to create directories needed";
                 return 0;
             }
-            if (!file_exists("$this->path/$this->copy/partials/$filename")) {
-                echo "Invalid Filename";
+            if (!is_dir("$this->path/$view_name/$res_dir") && !mkdir("$this->path/$view_name/$res_dir")) {
+                echo "Unable to create directories needed";
+                return 0;
             }
-            touch("$this->path/$this->copy/partials/$filename");
-            foreach ($this->partials as $v) {
-                if ($v == $filename)
+            if (!file_exists("$this->path/$view_name/$res_dir/$filename") && !touch("$this->path/$view_name/$res_dir/$filename")) {
+                echo "Unable to create files needed";
+                return 0;
+            }
+            foreach ($this->injections as $k=>$v) {
+                if ($v[0] == $res_dir && $v[1] == $filename)
                     $bool = 1;
             }
             if ($bool == 1)
                 return 0;
             else
-                $this->partials[] = "$filename";
+                $this->injections[] = array($res_dir,"$filename");
             return 1;
         }
         
@@ -239,49 +275,48 @@
         */
         public function addShared(string $filename) {
             $bool = 0;
-            if (!is_dir("$this->path/$this->copy/partials/"))
-                mkdir("$this->path/$this->copy/partials");
-            if (!is_dir("$this->path/$this->copy/partials/")) {
+            if (!is_dir("$this->path/shared"))
+                mkdir("$this->path/shared");
+            if (!is_dir("$this->path/shared")) {
                 echo "Unable to create directories needed";
                 return 0;
             }
-            if (!file_exists("$this->path/$this->copy/partials/$filename")) {
-                touch("$this->path/$this->copy/partials/$filename");
-                if (!file_exists("$this->path/$this->copy/partials/$filename")) {
+            if (!file_exists("$this->path/shared/$filename")) {
+                touch("$this->path/shared/$filename");
+                if (!file_exists("$this->path/shared/$filename")) {
                     echo "Unable to create files needed";
                     return 0;
                 }
             }
-            foreach ($this->partials as $v) {
-                if ($v == $filename)
-                    $bool = 1;
+            foreach ($this->injections as $k=>$v) {
+                if ($v[0] == "shared" && $v[1] == $filename)
+                    $bool = 1; 
             }
             if ($bool == 1)
                 return 0;
             else
-                $this->partials[] = "$filename";
+                $this->injections[] = array("shared","$filename");
             return 1;
         }
-        
-        /*
-        *
-        * public function changeTitle
-        * @parameters string, string
-        *
-        */
-        public function changeTitle(string $view_name, string $title) {
-            $bool = 0;
-            
-            if (!$this->partials) {
-                echo 'No such View';
-                return 0;
+
+
+        public function writeIndex() {
+            $buff = "<?php";
+            $fp = fopen("$this->token/index.php", "a");
+            foreach ($this->injections as $k) {
+                $vk = $k[0];
+                $vv = $k[1];
+                if ($vk == "shared") {
+                    $buff .= "\r\n\trequire_once(\"view/shared/$vv\");";
+                }
+                else {
+                    $buff .= "\r\nrequire_once(\"view/index/$vk/$vv\");";
+                }
             }
-
-            $this->partials[$view_name]->title = $title;
-
-            return 1;
+            $buff .= "\r\n?>\r\n";
+            fwrite($fp, $buff);
+            fclose($fp);
         }
-        
         /*
         *
         * public function writePage
@@ -289,32 +324,51 @@
         *
         */
         public function writePage(string $view_name) {
-            $fp = fopen("$this->path/$this->copy/index.php", "w");
-            $buf = "<?php\r";
-            foreach ($this->partials as $v2) {
-                $buf .= "require_once('$this->path/$this->copy/partials/" . $v2 . "');\n";
+            $fp = null;
+            if ($view_name == "index") {
+                touch("$this->token/index.php");
+                $this->writeIndex();
+                return 1;
             }
-            fwrite($fp, $buf);
+            else if (!file_exists("$this->path/$view_name/index.php") && !touch("$this->path/$view_name/index.php"))
+                echo "Unable to create files needed";
+            if ($view_name != "index")
+                $fp = fopen("$this->path/$view_name/index.php", "a");
+            $buff = "<?php\r\n";
+            foreach ($this->injections as $k) {
+                $vk = $k[0];
+                $vv = $k[1];
+                if ($vk == "shared") {
+                    $buff .= "require_once(\"../shared/$vv\");\r\n";
+                }
+                else
+                    $buff .= "require_once(\"../$view_name/$vk/$vv\");\r\n";
+
+            }
+            $buff .= "?>\r\n";
+            fwrite($fp, $buff);
             fclose($fp);
             return 1;
         }
 
         /*
         *
-        * public function removePartial
+        * public function removeDependency
         * @parameters string, string
         *
         */
-        public function removePartial(string $view_name, string $partial) {
+        public function removeDependency(string $folder, string $partial) {
             $bool = 0;
-            foreach ($this->partials[$view_name] as $v) {
-                if ($v != $partial)
+            $k = [];
+            foreach ($this->injections as $v) {
+                if ($v != array($folder,$partial))
                     $k = array_merge($k, array($v));
-                else
-                    $bool = 1;
+                else $bool = 1;
             }
-            if ($bool == 1)
+            if ($bool == 1) {
+                $this->injections = $k;
                 return 1;
+            }
             return 0;
         }
     }
@@ -323,6 +377,7 @@
     
         public $model = array();
         public $valid = array();
+        public $errormsgs = array();
         public $data = array();
         public $copy;
         public $token;
@@ -337,6 +392,7 @@
         function ___construct(string $token, string $view_name) {
             $this->valid = [];
             $this->model = [];
+            $this->errormsgs = [];
             $this->token = $token;
             $this->copy = $view_name;
         }
@@ -347,13 +403,38 @@
         * @parameters string
         *
         */
-        public function addModelField(string $fieldname) {
+        public function addModelField(string $fieldname, string $regex = "/.*/", string $errmsg = "Please reenter data") {
             if ($fieldname == null)
                 return 0;
             $this->model[$fieldname] = null;
+            $this->model[$fieldname]['regex'] = $regex;
+            $this->model[$fieldname]['errmsg'] = $errmsg;
             return 1;
         }
         
+        
+        /*
+        *
+        * public function editModelData
+        * @parameters string, array
+        *
+        */
+        public function editModelData(string $view_name, array $data) {
+            $wrong_ans = [];
+            $this->checkValid($this->valid, $data, $wrong_ans);
+            if (sizeof($this->model) == 0) {
+                $this->model = $data;
+                return 1;
+            }
+            foreach ($data as $k=>$v) {
+                if ($wrong_ans[$k] == null)
+                    $this->data[$view_name]->$k = null;
+                else
+                    $this->data[$view_name]->$k = $v;
+            }
+            return 1;
+        }
+
         /*
         *
         * public function addModelData
@@ -363,7 +444,7 @@
         public function addModelData(string $view_name, array $data) {
             $wrong_ans = [];
             $this->checkValid($this->valid, $data, $wrong_ans);
-              
+            
             if (sizeof($this->model) == 0) {
                 $this->model = $data;
                 return 1;
@@ -389,61 +470,79 @@
         /*
         *
         * public function paginateModels
-        * @parameters string, string, int, int
+        * @parameters string, string, string, int, int
         *
         */
-        public function paginateModels(string $token, string $view_name, int $begin = 0, int $end = 0) {
+        public function paginateModels(string $token, string $view_name, string $filename, int $begin = 0, int $end = 0) {
             $bool = 0;
             $int_cnt = 0;
-            $buf = "echo '<table>";
-                    $buf .= "<tr>";
-                    $buf .= "<td style=\"background:opacity:0.0;border:0px;\"></td>";
-                    foreach ($this->model as $kn=>$vn) {
-                        if ($begin == $int_cnt || $end == 0 || $int_cnt < $end) {
-                            $buf .= "<th>$kn</th>";
-                        }
-                        $int_cnt++;
+            $buf = "<?php\r\n\techo '<table>\r\n";
+            $buf .= "\t\t<tr>\r\n";
+            $buf .= "\t\t\t<th style=\"background:opacity:0.0;border:0px;\"></th>\r\n";
+            foreach ($this->model as $kn=>$vn) {
+                if ($begin == $int_cnt || $end == 0 || $int_cnt < $end) {
+                    $buf .= "\t\t\t<th>$kn</th>\r\n";
+                }
+                $int_cnt++;
+            }
+            $int_cnt = 0;
+            $bool = 1;
+            $buf .= "\t\t</tr>\r\n";
+            $int_dat = 0;
+            foreach ($this->data as $v1=>$va) {
+                $buf .= "\t\t<tr>\r\n";
+                $buf .= "\t\t\t<td>$v1</td>\r\n";
+                foreach ($va as $k2=>$v2) {
+                    if ($begin == $int_cnt || $end == 0 || $int_cnt < $end) {
+                        $buf .= "\t\t\t<td>$v2</td>\r\n";
                     }
-                    $int_cnt = 0;
-                    $bool = 1;
-                    $buf .= "</tr>";
-                    $int_dat = 0;
-                    foreach ($this->data as $v1=>$va) {
-                        $buf .= "<tr>";
-                        $buf .= "<td>$v1</td>";
-                        foreach ($va as $k2=>$v2) {
-
-                            if ($begin == $int_cnt || $end == 0 || $int_cnt < $end) {
-                                $buf .= "<td>$v2</td>";
-                            }
-                            $int_cnt++;
-                        }
-                        $int_cnt = 0;
-                        $int_dat++;
-                        $buf .= "</tr>";
-                    }
-                $buf .= "</table>';";
-                //$bool
-                $fp = null;
-                if ($view_name == 'index')
-                    $fp = fopen("$token/index.php", "a");
-                else if (!file_exists("$token/view/$view_name/index.php"))
-                    touch("$token/view/$view_name/index.php");
-                $fp = fopen("$token/view/$view_name/index.php", "a");
-                fwrite($fp, $buf);
-                fclose($fp);
-                return $buf;
+                    $int_cnt++;
+                }
+                $int_cnt = 0;
+                $int_dat++;
+                $buf .= "\t\t</tr>\r\n";
+            }
+            $buf .= "\t</table>';\r\n ?>\r\n";
+            //$bool
+            $view = null;
+            if ($view_name == 'index')
+                $view = "$token/$filename";
+            else if (!file_exists("$token/view/$view_name/$filename"))
+                touch("$token/view/$view_name/$filename");
+            if (!file_exists("$token/$filename") && !file_exists("$token/view/$view_name/$filename")) {
+                echo "Unable to make files needed";
+                return 0;
+            }
+            else if ($view_name != 'index')
+                $view = "$token/view/$view_name/$filename";
+            $fp = fopen($view, "a");
+            fwrite($fp, $buf);
+            fclose($fp);
+            return $buf;
         }
         
         /*
         *
         * public function addModelValid
-        * @parameters string, string
+        * @parameters string, string, string
         *
         */
-        public function addModelValid(string $property, string $regex) {
-            $this->addModelField($property);
-            $this->valid[$property] = $regex;
+        public function addModelValid(string $property, string $regex = "/.*/", string $errmsg = "Please check your entry") {
+            
+            $this->addModelField($property, $regex, $errmsg);
+            $this->valid[$property]['regex'] = $regex;
+            $this->valid[$property]['errmsg'] = $errmsg;
+            return 1;
+        }
+        
+        /*
+        *
+        * public function checkValid
+        * @parameters string, array &
+        *
+        */
+        private function errorReturn(string $key, array &$errormsgs = array()) {
+            $errormsgs[$key] = $this->valid[$key]['errmsg'];
             return 1;
         }
 
@@ -454,9 +553,11 @@
         *
         */
         public function checkValid(array $valid, array $data, array &$wrong_ans = array()) {
+            $this->errormsgs = [];
             foreach ($data as $k => $v) {
-                if ($v != null && !preg_match($valid[$k], $v)) {
+                if ($v != null && !preg_match($valid[$k]['regex'], $v)) {
                     $wrong_ans[$k] = null;
+                    $this->errorReturn($k, $this->errormsgs);
                 }
                 else
                     $wrong_ans[$k] = $v;
@@ -464,4 +565,3 @@
             return 1;
         }
     }
-    
