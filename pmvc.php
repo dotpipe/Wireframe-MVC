@@ -170,11 +170,11 @@ include('required.php');
         /*
         *
         * public function addAction
-        * @parameters string
+        * @parameters string, string, string
         *
         */
-        public function addAction(string $action_name) {
-            return $this->view->actions[] = new Actions($this->token, $action_name);
+        public function addAction(string $token, string $view_name, string $action_name) {
+            return $this->view->actions[$action_name] = new Actions($this->token, $view_name, $action_name);
         }
     }
 
@@ -182,29 +182,32 @@ include('required.php');
 
         public $token;
         public $path;
-        
+        public $copy;
         /*
         *
         * public function __construct
-        * @parameters string, string
+        * @parameters string, string, string
         *
         */
-        function __construct(string $tok, string $view_name) {
-            $this->token = $tok;
+        function __construct(string $token, string $view_name, string $action_name) {
             $this->copy = $view_name;
+            if (!is_dir("$token/view/$view_name") && !mkdir("$token/view/$view_name"))
+                echo "Unable to create needed directories";
             $this->path = "$this->token/view/$view_name";
-            $this->createAction($view_name, "default");
+            $this->token = $token;
+            $this->createAction($action_name);
         }
         
         /*
         *
         * public function createAction
-        * @parameters string, string
+        * @parameters string
         *
         */
-        public function createAction(string $action_name, string $selector) {
-            $this->action[$action_name] = new PageViews($this->token, $this->copy);
-            $this->action[$action_name]->addPartial("index.php");
+        public function createAction(string $action_name) {
+            $this->actions[$action_name] = new PageViews($this->token, $this->copy);
+            echo $action_name;
+            $this->actions[$action_name]->addPartial("index.php", $this->copy, $action_name);
             return 0;
         }
     }
@@ -215,20 +218,22 @@ include('required.php');
         public $partials = array();
         public $token;
         public $injections = array();
+        public $selector;
 
         /*
         *
         * public function __construct
-        * @parameters string, string
+        * @parameters string, string, string
         *
         */
         function __construct(string $token, string $view_name) {
-            $this->path = "$token/view";
+            $this->token = $token;
+            $this->path = "$this->token/view";
+
             if (!is_dir("$this->path/$view_name") && !mkdir("$this->path/$view_name"))
                 echo "Unable to create needed directories";
             $this->copy = $view_name;
             $this->injections = [];
-            $this->token = $token;
         }
         
         /*
@@ -244,9 +249,12 @@ include('required.php');
                 $res_dir = "partials";
             $bool = 0;
             
-            if (!is_dir("$this->path/$view_name") && !mkdir("$this->path/$view_name")) {
-                echo "Unable to create directories needed";
-                return 0;
+            $exp_dir = explode('/', $res_dir);
+            $kmd = "";
+            foreach ($exp_dir as $k) {
+                $kmd .= $k . '/';
+                if (!is_dir("$this->path/$view_name/$kmd") && !mkdir("$this->path/$view_name/$kmd"))
+                    echo "Unable to create directories";
             }
             if (!is_dir("$this->path/$view_name/$res_dir") && !mkdir("$this->path/$view_name/$res_dir")) {
                 echo "Unable to create directories needed";
@@ -341,8 +349,11 @@ include('required.php');
                 if ($vk == "shared") {
                     $buff .= "require_once(\"../shared/$vv\");\r\n";
                 }
+                else if ($vk == "partials")
+                    $buff .= "require_once(\"../$view_name/$vk/$vv\");\r\n";
                 else
                     $buff .= "require_once(\"../$view_name/$vk/$vv\");\r\n";
+                    
 
             }
             $buff .= "?>\r\n";
