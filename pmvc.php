@@ -478,7 +478,8 @@ include('required.php');
             $int_cnt = 0;
             $buf = "<?php\r\n\techo '<table>\r\n";
             $buf .= "\t\t<tr>\r\n";
-            $buf .= "\t\t\t<th style=\"background:opacity:0.0;border:0px;\"></th>\r\n";
+            if ($begin == 0)
+                $buf .= "\t\t\t<th style=\"background:opacity:0.0;border:0px;\"></th>\r\n";
             foreach ($this->model as $kn=>$vn) {
                 if ($begin == $int_cnt || $end == 0 || $int_cnt < $end) {
                     $buf .= "\t\t\t<th>$kn</th>\r\n";
@@ -491,7 +492,8 @@ include('required.php');
             $int_dat = 0;
             foreach ($this->data as $v1=>$va) {
                 $buf .= "\t\t<tr>\r\n";
-                $buf .= "\t\t\t<td>$v1</td>\r\n";
+                if ($begin == 0)
+                    $buf .= "\t\t\t<td>$v1</td>\r\n";
                 foreach ($va as $k2=>$v2) {
                     if ($begin == $int_cnt || $end == 0 || $int_cnt < $end) {
                         $buf .= "\t\t\t<td>$v2</td>\r\n";
@@ -565,3 +567,32 @@ include('required.php');
             return 1;
         }
     }
+    $y = array("Address" => "BenSt", "Duration" => "fixed");
+    $z = array("Address" => "25th", "Duration" => "limited");
+
+    $x = new PageControllers("adp");
+    $x->newView("BestPHPEverNow");
+    $x->mvc['index']->addModelField("Address");
+    $x->mvc['index']->addModelValid("Address",'/.*/');
+    $x->mvc['index']->addModelValid("Duration",'/.*/');
+    $x->mvc['index']->addModelData('index', $y);
+    
+    $x->mvc['index']->view->addPartial("index.php");
+    $x->mvc['BestPHPEverNow']->view->addPartial("index.php");
+    $x->mvc['BestPHPEverNow']->view->addShared("index.php");
+    $x->mvc['BestPHPEverNow']->addModelValid("Address",'/1.*/', "Please ask the admin to help you!");
+    $x->mvc['BestPHPEverNow']->addModelValid("Duration",'/.*/');
+    $x->mvc['BestPHPEverNow']->addModelData('index', $y);
+    $x->mvc['BestPHPEverNow']->addModelData('friends', $z);
+    $x->paginateModels('index', 'index.php',1,3);
+    $x->mvc['BestPHPEverNow']->view->removeDependency("shared","index.php");
+    $x->mvc['index']->view->writePage("index");
+    $x->save();
+    echo json_encode($x);
+    $x = $x->loadJSON();
+
+    $x->addAction("adp","index");
+    
+    echo "<br><br><br>";
+    echo json_encode($x);
+    
