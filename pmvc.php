@@ -1,5 +1,5 @@
 <?php
-namespace Swatch\Container;
+namespace Pirodock\Container;
 
 include('required.php');
 
