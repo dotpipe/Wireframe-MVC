@@ -1,5 +1,5 @@
 <?php
-
+    include("pmvc.php");
     $y = array("Address" => "BenSt", "Duration" => "fixed");
     $z = array("Address" => "25th", "Duration" => "limited");
 
@@ -10,22 +10,21 @@
     $x->mvc['index']->addModelValid("Duration",'/.*/');
     $x->mvc['index']->addModelData('index', $y);
     
-    $x->mvc['BestPHPEverNow']->view->addPartial("index.php");
+    $x->mvc['index']->view->addPartial("index.php");
     $x->mvc['BestPHPEverNow']->view->addPartial("index.php");
     $x->mvc['BestPHPEverNow']->view->addShared("index.php");
     $x->mvc['BestPHPEverNow']->addModelValid("Address",'/1.*/', "Please ask the admin to help you!");
     $x->mvc['BestPHPEverNow']->addModelValid("Duration",'/.*/');
     $x->mvc['BestPHPEverNow']->addModelData('index', $y);
     $x->mvc['BestPHPEverNow']->addModelData('friends', $z);
-    $x->paginateModels('BestPHPEverNow', 'index.php',0,2);
+    $x->paginateModels('index', 'index.php',0,3);
     $x->mvc['BestPHPEverNow']->view->removeDependency("shared","index.php");
-    $x->mvc['BestPHPEverNow']->view->writePage("BestPHPEverNow");
+    $x->mvc['index']->view->writePage("index");
     $x->save();
     echo json_encode($x);
     $x = $x->loadJSON();
 
-    $x->newView("ForeverNew");
+    $x->addAction("adp", "index","TestAction/TestModule/TestFilter");
     
     echo "<br><br><br>";
     echo json_encode($x);
-    
