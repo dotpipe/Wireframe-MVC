@@ -1,10 +1,10 @@
 <?php
     spl_autoload_register(function ($className)
     {
-	    $path1 = './';
+	    $path = './';
 
-	    if (file_exists($path1.$className.'.php'))
-		    include $path1.$className.'.php';
+	    if (file_exists($path.$className.'.php'))
+		    include $path.$className.'.php';
     });
 
     $y = array("Address" => "BenSt", "Duration" => "fixed");
