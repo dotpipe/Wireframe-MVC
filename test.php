@@ -1,5 +1,12 @@
 <?php
-    include("pmvc.php");
+    spl_autoload_register(function ($className)
+    {
+	    $path1 = './';
+
+	    if (file_exists($path1.$className.'.php'))
+		    include $path1.$className.'.php';
+    });
+
     $y = array("Address" => "BenSt", "Duration" => "fixed");
     $z = array("Address" => "25th", "Duration" => "limited");
 
