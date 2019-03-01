@@ -71,7 +71,7 @@ spl_autoload_register(function ($className)
 			if ($bool == 1)
 				return 0;
 			else
-				$this->injections[] = array($res_dir,"$filename");
+				$this->injections[] = $res_dir . "/" . $filename;
 			return 1;
 		}
 		
@@ -252,7 +252,7 @@ spl_autoload_register(function ($className)
 		public function writePage(string $view_name) {
 			$fp = null;
 			if ($view_name == "index") {
-				touch("$this->token/$this->md/index.php");
+				touch("$this->token/index.php");
 				$this->writeIndex();
 				return 1;
 			}
@@ -299,5 +299,18 @@ spl_autoload_register(function ($className)
 				return 1;
 			}
 			return 0;
+		}
+
+		/*
+		*
+		* public function createAction
+		* @parameters string
+		*
+		*/
+		public function createAction(string $action_name) {
+			$this->actions[$this->copy] = new PageViews($this->token, $this->copy);
+			$this->actions[$this->copy]->addPartial("index.php", $this->copy, $action_name);
+			echo "<br><br><br>" . json_encode($this->actions);
+			return 1;
 		}
 	}

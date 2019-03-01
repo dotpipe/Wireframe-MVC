@@ -46,10 +46,10 @@ spl_autoload_register(function ($className)
 		public function addModelField(string $fieldname, string $regex = "/.*/", string $errmsg = "Please reenter data", string $lbl = null) {
 			if ($fieldname == null)
 				return 0;
-			$this->model[data] = null;
-			$this->model[data]['label'] = $lbl;
-			$this->model[data]['regex'] = $regex;
-			$this->model[data]['errmsg'] = $errmsg;
+			$this->model['data'] = null;
+			$this->model['data']['label'] = $lbl;
+			$this->model['data']['regex'] = $regex;
+			$this->model['data']['errmsg'] = $errmsg;
 			return 1;
 		}
 		

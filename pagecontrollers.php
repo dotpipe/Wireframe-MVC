@@ -165,9 +165,9 @@ spl_autoload_register(function ($className)
 			$old = unserialize($json_context);
 			$b = $old->mvc[$old->token];
 			foreach ($b as $key => $val) {
-				$this->mvc[$this->token]->$key = $b->$key;
+				$old->mvc[$this->token]->$key = $b->$key;
 			}
-			return 1;
+			return $old;
 		}
 		
 		/*
@@ -197,6 +197,6 @@ spl_autoload_register(function ($className)
 		*
 		*/
 		public function addAction(string $token, string $view_name, string $action_name) {
-			return $this->view->actions[$action_name] = new Actions($this->token, $view_name, $action_name);
+			return $this->actions[] = new PageActions($this->token, $view_name, $action_name);
 		}
 	}
