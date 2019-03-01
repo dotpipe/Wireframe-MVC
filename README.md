@@ -1,3 +1,3 @@
 # PMVC
 Pirodock MVC Stand-alone
-This is also available as a separate class in swatchphp/pirodock
+This is also available as a separate class in swatchphp/adoms
