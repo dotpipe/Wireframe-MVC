@@ -1,10 +1,18 @@
 <?php
-spl_autoload_register(function ($className)
-{
-    $path = './src/tables/';
-    if (file_exists($path.$className.'.php'))
-        include $path.$className.'.php';
+spl_autoload_register(function ($className) {
+    if ($className === "Classes") {
+        return;
+    }
+    foreach ([
+        './src/tables/'
+    ] as $Path) {
+        if (!file_exists($Path . $className . '.php')) {
+            continue;
+        }
+        include $Path . $className . '.php';
+    }
 });
+
 $y = array("Address" => "BenSt", "Duration" => "fixed");
 $z = array("Address" => "25th", "Duration" => "limited");
 $x = new PageControllers("adp");

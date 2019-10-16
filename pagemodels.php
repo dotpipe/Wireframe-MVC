@@ -1,13 +1,13 @@
 <?php
-spl_autoload_register(function ($className)
-{
-    $path1 = '/src/lib/';
-    $path2 = './';
-
-    if (file_exists($path1.$className.'.php'))
-        include $path1.$className.'.php';
-    else
-        include $path2.$className.'.php';
+spl_autoload_register(function ($className) {
+    foreach ([
+        '/src/lib/'
+    ] as $Path) {
+        if (!file_exists($Path . $className . '.php')) {
+            continue;
+        }
+        include $Path . $className . '.php';
+    }
 });
 
 class PageModels {
